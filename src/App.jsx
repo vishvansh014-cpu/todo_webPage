@@ -9,6 +9,7 @@ function App() {
   const [todos, setTodos] = useState([])
   const [editId, setEditId] = useState(null)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [showFinish, setShowFinish] = useState(true)
 
   // ⭐ LOAD from localStorage (runs once)
   useEffect(() => {
@@ -50,9 +51,17 @@ function App() {
       )
       setTodos(updatedTodos)
       setEditId(null)
-    }
-    else {
-      setTodos([...todos, { id: uuidv4(), todo, isComplete: false }])
+    } else {
+      setTodos([
+        ...todos,
+        {
+          id: uuidv4(),
+          todo,
+          isComplete: false,
+          createdAt: Date.now(),
+          priority: "Medium" // new
+        }
+      ])
     }
 
     setTodo("")
@@ -72,67 +81,134 @@ function App() {
     setTodos(newtodos)
   }
 
+  const toggleFinished = (e) => {
+    setShowFinish(!showFinish)
+  }
+
   return (
     <>
       <Navbar />
 
-      <div className='container mx-auto my-4 rounded-lg bg-blue-400 p-5 min-h-screen'>
+      <div className="min-h-screen bg-[#0b0f19] text-white flex justify-center p-6">
+        <div className="w-full max-w-5xl bg-[#0f172a] rounded-2xl border border-gray-800 p-6">
 
-        <div className='addTodo my-6'>
-          <h2 className='text-lg font-bold'>Add a todo</h2>
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-xl font-semibold">Task Manager</h1>
+            <span className="text-gray-400 cursor-pointer">✕</span>
+          </div>
 
-          <input
-            onChange={handleChange}
-            value={todo}
-            type="text"
-            placeholder="Next Todo"
-            className='rounded-lg w-96 p-1'
-          />
+          {/* Tabs */}
+          <div className="flex gap-6 text-sm mb-6">
+            <span className="text-orange-500 border-b-2 border-orange-500 pb-1">
+              Tasks ({todos.length})
+            </span>
+            <span className="text-gray-400">Timeline</span>
+            <span className="text-gray-400">Files</span>
+            <span className="text-gray-400">Report</span>
+          </div>
 
-          <button
-            onClick={handleAdd}
-            className='bg-white text-black rounded-lg m-3 cursor-pointer p-1 hover:bg-black hover:text-white transition-all'>
-            {editId ? "Update" : "Add"}
-          </button>
-        </div>
+          {/* Input */}
+          <div className="flex gap-3 mb-6">
+            <input
+              value={todo}
+              onChange={handleChange}
+              placeholder="Create new task..."
+              className="flex-1 bg-[#020617] border border-gray-700 px-3 py-2 rounded-lg outline-none"
+            />
+            <button
+              onClick={handleAdd}
+              className="bg-orange-500 px-4 py-2 rounded hover:bg-orange-600"
+            >
+              {editId ? "Update" : "Create"}
+            </button>
+          </div>
 
-        <h2 className='text-xl font-bold'>My todo</h2>
+          {/* Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-        <div className='todos'>
-          {todos.length === 0 && <div className='m-5'>No Todo To Display</div>}
-          {todos.map(item => {
-            return (
-              <div key={item.id} className="todo flex w-1/2 justify-between items-center my-2">
-                <div className='flex gap-5'>
-                  <input
-                    name={item.id}
-                    onChange={handleCheckBox}
-                    type="checkbox"
-                    checked={item.isComplete}
-                  />
-                  <div className={item.isComplete ? "line-through" : ""}>
-                    {item.todo}
+            {todos.map(item => (
+              (showFinish || !item.isComplete) &&
+
+              <div
+                key={item.id}
+                className="relative p-[1px] rounded-2xl bg-gradient-to-r from-red-500 via-orange-400 to-yellow-400"
+              >
+                <div className="bg-[#020617] rounded-2xl p-5 h-full">
+
+                  {/* Tags */}
+                  <div className="flex gap-2 mb-3">
+                    <span className="text-xs bg-gray-800 px-2 py-1 rounded">
+                      Task
+                    </span>
+                    <span className="text-xs bg-gray-800 px-2 py-1 rounded">
+                      Dev
+                    </span>
                   </div>
-                </div>
 
-                <div className="buttons flex gap-2">
-                  <button
-                    onClick={() => handleEdit(item.id)}
-                    className='bg-white text-black rounded-lg px-2 py-1 hover:bg-black hover:text-white transition-all'>
-                    Edit
-                  </button>
+                  {/* Title */}
+                  <h2 className="text-lg font-semibold mb-2">
+                    {item.todo}
+                  </h2>
 
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="bg-white text-black rounded-lg px-2 py-1 hover:bg-black hover:text-white transition-all">
-                    Delete
-                  </button>
+                  {/* Description (fake) */}
+                  <p className="text-sm text-gray-400 mb-4">
+                    Manage and track your task efficiently.
+                  </p>
+
+                  {/* Info */}
+                  <div className="text-xs text-gray-400 mb-4">
+                    {item.createdAt
+                      ? new Date(item.createdAt).toLocaleString()
+                      : "Today"}
+                  </div>
+
+                  {/* Bottom */}
+                  <div className="flex justify-between items-center">
+
+                    {/* Priority */}
+                    <span className={`text-xs px-2 py-1 rounded ${item.priority === "High"
+                        ? "bg-red-500"
+                        : item.priority === "Low"
+                          ? "bg-green-500"
+                          : "bg-yellow-500"
+                      }`}>
+                      {item.priority}
+                    </span>
+
+                    {/* Buttons */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(item.id)}
+                        className="bg-orange-500 px-3 py-1 rounded hover:bg-orange-600"
+                      >
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+
                 </div>
               </div>
-            )
-          })}
-        </div>
+            ))}
 
+            {/* Add Card */}
+            <div className="flex items-center justify-center border border-dashed border-gray-700 rounded-2xl h-40 cursor-pointer hover:bg-gray-800 transition">
+              <div className="text-center text-gray-400">
+                <div className="text-2xl mb-2">+</div>
+                Add New Task
+              </div>
+            </div>
+
+          </div>
+
+        </div>
       </div>
     </>
   )
